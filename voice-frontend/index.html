@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Voice AI Assistant</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #111827;
+            color: white;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #60a5fa;
+        }
+
+        #chatBox {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 10px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 70%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>My Voice AI Assistant</h1>
+
+<div id="chatBox"></div>
+
+<input type="text" id="userInput" placeholder="Type message">
+
+<button onclick="sendMessage()">Send</button>
+
+<button onclick="startListening()">🎤 Speak</button>
+
+<script>
+
+const chatBox = document.getElementById("chatBox");
+
+function addMessage(sender, text) {
+    chatBox.innerHTML += `
+        <div class="message">
+            <b>${sender}:</b> ${text}
+        </div>
+    `;
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function sendMessage(messageFromVoice = null) {
+
+    const input = document.getElementById("userInput");
+
+    const userMessage = messageFromVoice || input.value;
+
+    if (!userMessage) return;
+
+    addMessage("You", userMessage);
+
+    input.value = "";
+
+    try {
+
+        const response = await fetch("http://localhost:5000/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: userMessage
+            })
+        });
+
+        const data = await response.json();
+
+        addMessage("AI", data.reply);
+
+        speakText(data.reply);
+
+    } catch (error) {
+
+        console.error(error);
+
+        addMessage("AI", "Error connecting to backend");
+    }
+}
+
+function startListening() {
+
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "en-US";
+
+    recognition.start();
+
+    recognition.onstart = () => {
+        addMessage("System", "Listening...");
+    };
+
+    recognition.onresult = (event) => {
+
+        const transcript = event.results[0][0].transcript;
+
+        sendMessage(transcript);
+    };
+
+    recognition.onerror = (event) => {
+        console.error(event.error);
+
+        addMessage("System", "Mic error");
+    };
+}
+
+function speakText(text) {
+
+    const speech = new SpeechSynthesisUtterance(text);
+
+    speech.lang = "en-US";
+
+    speech.volume = 1;
+
+    speech.rate = 1;
+
+    speech.pitch = 1;
+
+    window.speechSynthesis.speak(speech);
+}
+
+</script>
+
+</body>
+</html>
