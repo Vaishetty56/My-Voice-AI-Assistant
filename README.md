@@ -39,14 +39,18 @@ This project allows users to interact with an AI using both voice and text. The 
 ## Project Structure
 
 ```text
-voice-backend/
+voice-ai-assistant/
 │
-├── node_modules/
-├── .env
-├── package.json
-├── package-lock.json
-├── server.js
-└── index.html
+├── backend/
+│   ├── server.js
+│   ├── package.json
+│   ├── package-lock.json
+│   └── .env
+│
+├── frontend/
+│   └── index.html
+│
+└── README.md
 ```
 
 ---
